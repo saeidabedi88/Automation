@@ -1,0 +1,188 @@
+version: '3.8'
+
+services:
+  # Database services
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=email_automation
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=email_automation
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Message queue
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672" # AMQP port
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Vector database for RAG
+  chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Email MCP service
+  email-mcp:
+    build:
+      context: ./src/email-mcp
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./src/email-mcp:/app
+      - /app/node_modules
+    environment:
+      - PORT=3002
+      - NODE_ENV=development
+      - POSTGRES_URI=postgresql://postgres:postgres@postgres:5432/email_automation
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # Email Settings
+      - SMTP_HOST=smtp.hostinger.com
+      - SMTP_PORT=465
+      - SMTP_SECURE=true
+      - SMTP_USER=saeid@mnnm.ca
+      - SMTP_PASSWORD=wvzQ5RTw$%M
+      - DEFAULT_FROM_EMAIL=saeid@mnnm.ca
+      # IMAP Settings
+      - ENABLE_EMAIL_POLLING=true
+      - EMAIL_POLL_INTERVAL=60000
+      - IMAP_HOST=imap.hostinger.com
+      - IMAP_PORT=993
+      - IMAP_USER=saeid@mnnm.ca
+      - IMAP_PASSWORD=wvzQ5RTw$%M
+      - IMAP_TLS=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Conductor MCP service
+  conductor-mcp:
+    build:
+      context: ./src/conductor-mcp
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./src/conductor-mcp:/app
+      - /app/node_modules
+    environment:
+      - PORT=3001
+      - NODE_ENV=development
+      - POSTGRES_URI=postgresql://postgres:postgres@postgres:5432/email_automation
+      - MONGODB_URI=mongodb://mongodb:27017/email_automation
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - EMAIL_MCP_URL=http://email-mcp:3002
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      email-mcp:
+        condition: service_started
+    restart: unless-stopped
+
+  # RAG server service
+  rag-server:
+    build:
+      context: ./src/rag-server
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./src/rag-server:/app
+      - /app/node_modules
+    environment:
+      - PORT=3003
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+      - MONGODB_URI=mongodb://mongodb:27017/email_automation
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - EMAIL_MCP_API_URL=http://email-mcp:3002/api
+      - CONDUCTOR_API_URL=http://conductor-mcp:3001/api
+      - USE_MOCK_DATA=false
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      chroma:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Dashboard service
+  dashboard:
+    build:
+      context: ./src/dashboard
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src/dashboard:/app
+      - /app/node_modules
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - API_URL=http://conductor-mcp:3001/api
+      - REACT_APP_USE_MOCK_DATA=false
+    depends_on:
+      conductor-mcp:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+  postgres_data:
+  rabbitmq_data:
+  chroma_data:
