@@ -1,0 +1,52 @@
+[
+  {
+    "intent": "inquiry",
+    "purpose": "product_information",
+    "content": "Dear {{customer_name}},\n\nThank you for your interest in our {{product_name}}. \n\n{{product_details}}\n\nIf you have any further questions, please don't hesitate to reach out. We're here to help!\n\nBest regards,\n{{company_name}} Support Team"
+  },
+  {
+    "intent": "inquiry",
+    "purpose": "pricing",
+    "content": "Dear {{customer_name}},\n\nThank you for your inquiry about our pricing options. \n\nOur current pricing structure is as follows:\n\n{{pricing_details}}\n\nWe offer several flexible payment plans to meet your needs. If you'd like to discuss a custom solution, please let me know.\n\nBest regards,\n{{company_name}} Sales Team"
+  },
+  {
+    "intent": "support",
+    "purpose": "technical_issue",
+    "content": "Dear {{customer_name}},\n\nThank you for contacting our support team. I'm sorry to hear you're experiencing issues with {{product_name}}.\n\nBased on your description, here's what I recommend:\n\n{{troubleshooting_steps}}\n\nIf these steps don't resolve your issue, please reply with any error messages you're seeing, and we'll continue troubleshooting.\n\nBest regards,\n{{company_name}} Technical Support"
+  },
+  {
+    "intent": "support",
+    "purpose": "feature_request",
+    "content": "Dear {{customer_name}},\n\nThank you for your suggestion regarding {{product_name}}. We appreciate your feedback and are always looking for ways to improve our products.\n\nI've forwarded your feature request to our product team for consideration. While I can't make any promises about implementation timelines, please know that we value your input.\n\nBest regards,\n{{company_name}} Product Team"
+  },
+  {
+    "intent": "complaint",
+    "purpose": "service_issue",
+    "content": "Dear {{customer_name}},\n\nI sincerely apologize for the service issue you experienced. We take these matters very seriously, and I want to assure you that this is not representative of our standard level of service.\n\n{{acknowledgment_of_issue}}\n\nTo make this right, I'd like to {{proposed_resolution}}. Would this be acceptable to you?\n\nThank you for bringing this to our attention and giving us the opportunity to address it.\n\nSincerely,\n{{company_name}} Customer Relations"
+  },
+  {
+    "intent": "complaint",
+    "purpose": "product_issue",
+    "content": "Dear {{customer_name}},\n\nI apologize for the problems you've encountered with {{product_name}}. Your satisfaction is important to us, and we want to make this right.\n\nBased on your description, it seems that {{issue_analysis}}. Here's what we can do to resolve this:\n\n{{resolution_steps}}\n\nPlease let me know if you'd prefer an alternative solution, and we'll do our best to accommodate your request.\n\nSincerely,\n{{company_name}} Customer Support"
+  },
+  {
+    "intent": "order",
+    "purpose": "confirmation",
+    "content": "Dear {{customer_name}},\n\nThank you for your order #{{order_number}}. We're pleased to confirm that we've received your order for:\n\n{{order_details}}\n\nYour order is being processed and will be shipped within {{shipping_timeframe}}. You'll receive a tracking number once your order is on its way.\n\nThank you for choosing {{company_name}}!\n\nBest regards,\n{{company_name}} Order Processing"
+  },
+  {
+    "intent": "order",
+    "purpose": "status_update",
+    "content": "Dear {{customer_name}},\n\nRegarding your order #{{order_number}}, I'm pleased to inform you that {{status_update}}.\n\n{{additional_details}}\n\nIf you have any questions about your order, please don't hesitate to contact us.\n\nBest regards,\n{{company_name}} Customer Service"
+  },
+  {
+    "intent": "cancellation",
+    "purpose": "subscription",
+    "content": "Dear {{customer_name}},\n\nI'm sorry to hear that you'd like to cancel your subscription to {{service_name}}. Your subscription has been canceled as requested, effective {{cancellation_date}}.\n\n{{final_billing_details}}\n\nWe value your feedback. If you have a moment, we'd appreciate knowing the reason for your cancellation so we can improve our service.\n\nShould you wish to reactivate your subscription in the future, you're always welcome back.\n\nBest regards,\n{{company_name}} Customer Relations"
+  },
+  {
+    "intent": "feedback",
+    "purpose": "response",
+    "content": "Dear {{customer_name}},\n\nThank you for taking the time to share your feedback about {{feedback_subject}}. We genuinely appreciate hearing from our customers as it helps us improve.\n\n{{response_to_feedback}}\n\nYour insights are valuable to us, and we take them seriously in our ongoing efforts to enhance our products and services.\n\nThank you again for your feedback.\n\nBest regards,\n{{company_name}} Team"
+  }
+] 

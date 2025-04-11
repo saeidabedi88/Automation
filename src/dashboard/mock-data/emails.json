@@ -1,0 +1,29 @@
+[
+  {
+    "id": "mock-email-1",
+    "subject": "Question about product pricing",
+    "sender": "customer@example.com",
+    "received_at": "2025-04-08T03:20:58.606Z",
+    "status": "pending_review",
+    "intent": "pricing_inquiry",
+    "risk_level": "low"
+  },
+  {
+    "id": "mock-email-2",
+    "subject": "Urgent: Account access issue",
+    "sender": "urgent@example.com",
+    "received_at": "2025-04-08T02:20:58.611Z",
+    "status": "pending_review",
+    "intent": "account_issue",
+    "risk_level": "high"
+  },
+  {
+    "id": "mock-email-3",
+    "subject": "Feedback on recent service",
+    "sender": "feedback@example.com",
+    "received_at": "2025-04-08T01:20:58.611Z",
+    "status": "pending_review",
+    "intent": "feedback",
+    "risk_level": "medium"
+  }
+]

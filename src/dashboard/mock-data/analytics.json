@@ -1,0 +1,48 @@
+{
+  "total_emails": 127,
+  "auto_processed": 98,
+  "pending_review": 29,
+  "avg_processing_time": "2.3",
+  "intent_distribution": {
+    "pricing_inquiry": 35,
+    "account_issue": 42,
+    "feedback": 21,
+    "information_request": 18,
+    "other": 11
+  },
+  "risk_distribution": {
+    "low": 73,
+    "medium": 39,
+    "high": 15
+  },
+  "daily_volume": [
+    {
+      "date": "2023-04-01",
+      "count": 18
+    },
+    {
+      "date": "2023-04-02",
+      "count": 22
+    },
+    {
+      "date": "2023-04-03",
+      "count": 15
+    },
+    {
+      "date": "2023-04-04",
+      "count": 19
+    },
+    {
+      "date": "2023-04-05",
+      "count": 25
+    },
+    {
+      "date": "2023-04-06",
+      "count": 17
+    },
+    {
+      "date": "2023-04-07",
+      "count": 11
+    }
+  ]
+}
