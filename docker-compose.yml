@@ -75,6 +75,7 @@ services:
       - "3002:3002"
     volumes:
       - ./src/email-mcp:/app
+      - email_mcp_data:/app/data
       - /app/node_modules
     environment:
       - PORT=3002
@@ -82,21 +83,23 @@ services:
       - POSTGRES_URI=postgresql://postgres:postgres@postgres:5432/email_automation
       - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      # Email Settings
-      - SMTP_HOST=smtp.hostinger.com
-      - SMTP_PORT=465
-      - SMTP_SECURE=true
-      - SMTP_USER=saeid@mnnm.ca
-      - SMTP_PASSWORD=wvzQ5RTw$%M
-      - DEFAULT_FROM_EMAIL=saeid@mnnm.ca
-      # IMAP Settings
-      - ENABLE_EMAIL_POLLING=true
-      - EMAIL_POLL_INTERVAL=60000
-      - IMAP_HOST=imap.hostinger.com
-      - IMAP_PORT=993
-      - IMAP_USER=saeid@mnnm.ca
-      - IMAP_PASSWORD=wvzQ5RTw$%M
-      - IMAP_TLS=true
+      # Email Settings — set these in a root .env file (never commit secrets)
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - SMTP_SECURE=${SMTP_SECURE:-true}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-}
+      # IMAP Settings (optional bootstrap; prefer connecting accounts in the dashboard)
+      - ENABLE_EMAIL_POLLING=${ENABLE_EMAIL_POLLING:-true}
+      - EMAIL_POLL_INTERVAL=${EMAIL_POLL_INTERVAL:-60000}
+      - IMAP_HOST=${IMAP_HOST:-}
+      - IMAP_PORT=${IMAP_PORT:-993}
+      - IMAP_USER=${IMAP_USER:-}
+      - IMAP_PASSWORD=${IMAP_PASSWORD:-}
+      - IMAP_TLS=${IMAP_TLS:-true}
+      - CALENDAR_SYNC_INTERVAL=${CALENDAR_SYNC_INTERVAL:-300000}
+      - EMAIL_DATA_DIR=/app/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -186,3 +189,4 @@ volumes:
   postgres_data:
   rabbitmq_data:
   chroma_data:
+  email_mcp_data:

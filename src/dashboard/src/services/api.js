@@ -282,9 +282,104 @@ const settingsService = {
   }
 };
 
+// Connected mailbox accounts (Gmail, Outlook, custom IMAP)
+const accountService = {
+  getProviders: async () => {
+    const response = await api.get('/accounts/providers');
+    return response.data;
+  },
+  list: async () => {
+    const response = await api.get('/accounts');
+    return response.data;
+  },
+  connect: async (payload) => {
+    const response = await api.post('/accounts', payload);
+    return response.data;
+  },
+  update: async (id, payload) => {
+    const response = await api.patch(`/accounts/${id}`, payload);
+    return response.data;
+  },
+  remove: async (id) => {
+    const response = await api.delete(`/accounts/${id}`);
+    return response.data;
+  },
+  test: async (id) => {
+    const response = await api.post(`/accounts/${id}/test`);
+    return response.data;
+  },
+};
+
+// Unread inbox briefs + decision-based replies
+const inboxService = {
+  getUnreadBriefs: async (params = {}) => {
+    const response = await api.get('/inbox/unread', { params });
+    return response.data;
+  },
+  generateDraft: async (emailId, decisionNotes = '') => {
+    const response = await api.post(`/inbox/${encodeURIComponent(emailId)}/draft`, {
+      decisionNotes,
+    });
+    return response.data;
+  },
+  recordDecision: async (emailId, payload) => {
+    const response = await api.post(`/inbox/${encodeURIComponent(emailId)}/decision`, payload);
+    return response.data;
+  },
+  send: async (emailId) => {
+    const response = await api.post(`/inbox/${encodeURIComponent(emailId)}/send`);
+    return response.data;
+  },
+};
+
+// Calendar sources, events, reminders
+const calendarService = {
+  listSources: async () => {
+    const response = await api.get('/calendar/sources');
+    return response.data;
+  },
+  addSource: async (payload) => {
+    const response = await api.post('/calendar/sources', payload);
+    return response.data;
+  },
+  removeSource: async (id) => {
+    const response = await api.delete(`/calendar/sources/${id}`);
+    return response.data;
+  },
+  sync: async () => {
+    const response = await api.post('/calendar/sync');
+    return response.data;
+  },
+  getUpcoming: async (hours = 72) => {
+    const response = await api.get('/calendar/upcoming', { params: { hours } });
+    return response.data;
+  },
+  listEvents: async (params = {}) => {
+    const response = await api.get('/calendar/events', { params });
+    return response.data;
+  },
+  createEvent: async (payload) => {
+    const response = await api.post('/calendar/events', payload);
+    return response.data;
+  },
+  getReminders: async (lookAheadMinutes = 120) => {
+    const response = await api.get('/calendar/reminders', {
+      params: { lookAheadMinutes },
+    });
+    return response.data;
+  },
+  acknowledgeReminder: async (key) => {
+    const response = await api.post(`/calendar/reminders/${encodeURIComponent(key)}/ack`);
+    return response.data;
+  },
+};
+
 export {
   emailService,
   ragService,
   authService,
-  settingsService
+  settingsService,
+  accountService,
+  inboxService,
+  calendarService,
 }; 

@@ -28,6 +28,8 @@ const emailService = require('./services/emailService');
 const llmService = require('./services/llmService');
 const templateService = require('./services/templateService');
 const processingService = require('./services/processingService');
+const accountService = require('./services/accountService');
+const calendarService = require('./services/calendarService');
 
 // Create Express app
 const app = express();
@@ -82,6 +84,9 @@ app.get('/api/health', async (req, res) => {
 // Routes
 app.use('/api/emails', require('./routes/emails'));
 app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/accounts', require('./routes/accounts'));
+app.use('/api/inbox', require('./routes/inbox'));
+app.use('/api/calendar', require('./routes/calendar'));
 
 // Handle 404
 app.use((req, res) => {
@@ -201,6 +206,13 @@ async function startServer() {
     const PORT = process.env.PORT || 3002;
     app.listen(PORT, () => {
       logger.info(`Email MCP running on port ${PORT}`);
+
+      // Seed connected accounts from env when none are stored yet
+      try {
+        accountService.seedFromEnvIfEmpty();
+      } catch (seedError) {
+        logger.warn(`Account seed skipped: ${seedError.message}`);
+      }
       
       // Start email polling if IMAP is configured
       if (process.env.ENABLE_EMAIL_POLLING === 'true') {
@@ -248,6 +260,20 @@ async function startServer() {
           }
         }, parseInt(process.env.EMAIL_POLL_INTERVAL || '60000', 10));
       }
+
+      // Periodically sync calendars and log due reminders
+      const calendarInterval = parseInt(process.env.CALENDAR_SYNC_INTERVAL || '300000', 10);
+      setInterval(async () => {
+        try {
+          await calendarService.syncAllSources();
+          const reminders = calendarService.getDueReminders({ lookAheadMinutes: 120 });
+          reminders.forEach((reminder) => {
+            logger.info(`Calendar reminder: ${reminder.message}`);
+          });
+        } catch (calError) {
+          logger.warn(`Calendar sync/reminder cycle failed: ${calError.message}`);
+        }
+      }, calendarInterval);
     });
   } catch (error) {
     logger.error(`Server startup error: ${error.message}`);
