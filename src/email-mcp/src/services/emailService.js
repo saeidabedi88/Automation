@@ -279,6 +279,59 @@ async function sendEmail(emailData) {
 }
 
 /**
+ * Send an email using a specific connected account
+ * @param {Object} account - Account credentials from accountService
+ * @param {Object} emailData - Email payload
+ * @returns {Promise<Object>} Send result
+ */
+async function sendEmailWithAccount(account, emailData) {
+  if (!account || !account.smtpHost || !account.password) {
+    throw new Error('Account SMTP credentials are incomplete');
+  }
+
+  try {
+    const accountTransporter = nodemailer.createTransport({
+      host: account.smtpHost,
+      port: account.smtpPort || 465,
+      secure: account.smtpSecure !== false,
+      auth: {
+        user: account.email,
+        pass: account.password
+      }
+    });
+
+    const { to, cc, subject, body, attachments = [], from = account.email } = emailData;
+    const isHtml = /<[a-z][\s\S]*>/i.test(body);
+    const html = isHtml ? body : body.replace(/\n/g, '<br>');
+    const text = isHtml ? htmlToText(body) : body;
+
+    const info = await accountTransporter.sendMail({
+      from,
+      to,
+      cc,
+      subject,
+      text,
+      html,
+      attachments: (attachments || []).map((att) => ({
+        filename: att.filename,
+        content: att.content,
+        contentType: att.contentType
+      }))
+    });
+
+    logger.info(`Email sent via ${account.email}: ${info.messageId}`);
+    return {
+      success: true,
+      messageId: info.messageId,
+      response: info.response
+    };
+  } catch (error) {
+    logger.error(`Error sending via account ${account.email}: ${error.message}`);
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
+}
+
+/**
  * Compose an email from a generated response and recipient information
  * @param {Object} responseData - Generated response data
  * @param {Object} originalEmail - Original email data
@@ -424,6 +477,7 @@ initializeImap();
 module.exports = {
   parseEmail,
   sendEmail,
+  sendEmailWithAccount,
   composeEmail,
   extractEmailThreadHistory,
   checkConnections,

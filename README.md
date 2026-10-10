@@ -56,13 +56,26 @@ The Email Automation Platform consists of three main components:
 
 ## Email Integration
 
-To receive and process real emails, you need to configure your email account credentials in the Email MCP service. See the detailed instructions in the [Dashboard README](src/dashboard/README.md#email-integration).
+Connect one or more mailboxes from the dashboard **Settings → Connected email accounts** (Gmail, Outlook, Yahoo, iCloud, or custom IMAP). You can also bootstrap a single account with env vars — see `.env.example`.
+
+### Inbox briefs & decisions
+
+1. Open **Inbox Briefs** in the dashboard
+2. Refresh to pull unread mail from every connected account
+3. Read the short summary, write your decision notes, draft a reply, then approve & send
+
+### Calendar & reminders
+
+1. Open **Calendar**
+2. Paste a Google/Outlook **secret ICS URL**, or create local events
+3. Upcoming reminders appear at the top of the Calendar tab (and are logged by Email MCP)
 
 ### For Gmail Users
 
 1. Enable 2-Factor Authentication on your Google account
 2. Generate an App Password: Google Account → Security → App Passwords
-3. Use this App Password in your configuration
+3. Connect the account in Settings (or put the App Password in `.env`)
+4. For calendar: Google Calendar → Settings → Integrate calendar → Secret address in iCal format
 
 ## Testing the System
 

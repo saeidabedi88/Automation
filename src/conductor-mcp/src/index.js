@@ -71,6 +71,7 @@ app.get('/api/health', async (req, res) => {
 // API Routes - these come after static files but before the catch-all route
 app.use('/api/emails', require('./routes/emails'));
 app.use('/api/responses', require('./routes/responses'));
+app.use('/api', require('./routes/assistant'));
 
 // Serve React's index.html for any non-API routes (for client-side routing)
 app.get('*', function(req, res, next) {

@@ -209,6 +209,80 @@ function handleMockRequest(req, res) {
     return res.json(mockData.analytics);
   }
 
+  // Connected accounts
+  if (req.path === '/accounts/providers') {
+    return res.json({
+      status: 'success',
+      data: {
+        gmail: { label: 'Gmail', help: 'Use a Google App Password.' },
+        outlook: { label: 'Outlook / Microsoft 365' },
+        custom: { label: 'Custom IMAP/SMTP' }
+      }
+    });
+  }
+  if (req.path === '/accounts') {
+    return res.json({ status: 'success', data: [] });
+  }
+
+  // Inbox briefs
+  if (req.path === '/inbox/unread') {
+    return res.json({
+      status: 'success',
+      data: {
+        items: mockData.emails.map((email) => ({
+          id: email.id,
+          accountId: 'mock-account',
+          accountEmail: 'you@example.com',
+          accountLabel: 'Primary',
+          subject: email.subject,
+          from: email.sender,
+          date: email.received_at,
+          brief: {
+            summary: `Unread: ${email.subject}`,
+            urgency: email.risk_level === 'high' ? 'high' : 'normal',
+            suggestedAction: 'review and reply',
+            keyPoints: [`Intent: ${email.intent}`]
+          },
+          status: 'unread',
+          draftReply: null,
+          decision: null
+        })),
+        updatedAt: new Date().toISOString(),
+        errors: []
+      }
+    });
+  }
+
+  // Calendar
+  if (req.path === '/calendar/upcoming' || req.path === '/calendar/events') {
+    const start = new Date(Date.now() + 90 * 60 * 1000).toISOString();
+    return res.json({
+      status: 'success',
+      data: [{
+        id: 'mock-event-1',
+        title: 'Product sync',
+        location: 'Zoom',
+        start,
+        end: new Date(Date.now() + 150 * 60 * 1000).toISOString(),
+        reminderMinutes: [60, 15]
+      }]
+    });
+  }
+  if (req.path === '/calendar/reminders') {
+    return res.json({
+      status: 'success',
+      data: [{
+        key: 'mock-event-1:60',
+        title: 'Product sync',
+        message: 'In 60 minutes: Product sync @ Zoom',
+        dueAt: new Date().toISOString()
+      }]
+    });
+  }
+  if (req.path === '/calendar/sources') {
+    return res.json({ status: 'success', data: [] });
+  }
+
   // Default response for unhandled endpoints
   return res.json({
     status: 'success',

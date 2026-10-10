@@ -52,4 +52,9 @@ temp/
 # Specific to this project
 src/conductor-mcp/node_modules/
 src/email-mcp/node_modules/
-src/dashboard/node_modules/ 
+src/dashboard/node_modules/
+
+# Local runtime data (connected accounts, calendar cache, briefs)
+src/email-mcp/data/
+*.pem
+*.key 

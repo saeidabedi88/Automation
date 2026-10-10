@@ -18,10 +18,17 @@ const logger = winston.createLogger({
   ]
 });
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Lazily initialize OpenAI so the service can boot without a key
+let openai = null;
+function getOpenAI() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+  if (!openai) {
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openai;
+}
 
 /**
  * Generate a response to an email based on its intent, content, and history
@@ -42,7 +49,7 @@ async function generateEmailResponse(emailData, history = [], templates = []) {
     const userMessage = createUserMessage(content, history, metadata);
     
     // Call OpenAI API
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: process.env.OPENAI_MODEL || 'gpt-4-turbo',
       messages: [
         { role: 'system', content: systemMessage },
@@ -142,6 +149,10 @@ function createUserMessage(content, history, metadata) {
     if (metadata.product_info) {
       message += `Relevant Products: ${metadata.product_info.join(', ')}\n`;
     }
+
+    if (metadata.decision_notes) {
+      message += `User decision / instructions for the reply: ${metadata.decision_notes}\n`;
+    }
   }
   
   message += '\nPlease draft a response to this email.';
@@ -150,12 +161,58 @@ function createUserMessage(content, history, metadata) {
 }
 
 /**
+ * Generate a short unread-email brief for the dashboard inbox
+ * @param {Object} email - Parsed unread email
+ * @returns {Promise<Object>} Brief with summary, urgency, suggestedAction, keyPoints
+ */
+async function generateEmailBrief(email) {
+  try {
+    const body = (email.plainText || email.text || '').slice(0, 3000);
+    const response = await getOpenAI().chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You summarize unread emails for a busy professional.
+Return ONLY valid JSON with keys:
+summary (1-2 sentences),
+urgency ("low"|"normal"|"high"),
+suggestedAction (short verb phrase like "reply with availability", "archive", "forward to finance"),
+keyPoints (array of up to 3 short bullets).`
+        },
+        {
+          role: 'user',
+          content: `From: ${email.from}\nSubject: ${email.subject}\n\n${body}`
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 350,
+      response_format: { type: 'json_object' }
+    });
+
+    const parsed = JSON.parse(response.choices[0].message.content);
+    return {
+      summary: parsed.summary || 'No summary available.',
+      urgency: ['low', 'normal', 'high'].includes(parsed.urgency) ? parsed.urgency : 'normal',
+      suggestedAction: parsed.suggestedAction || 'review',
+      keyPoints: Array.isArray(parsed.keyPoints) ? parsed.keyPoints.slice(0, 3) : []
+    };
+  } catch (error) {
+    logger.error(`Error generating email brief: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
  * Check if OpenAI API is accessible
  * @returns {Promise<boolean>} Whether the API is accessible
  */
 async function checkApiStatus() {
   try {
-    const response = await openai.chat.completions.create({
+    if (!process.env.OPENAI_API_KEY) {
+      return false;
+    }
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [{ role: 'user', content: 'Hello' }],
       max_tokens: 5
@@ -170,5 +227,6 @@ async function checkApiStatus() {
 
 module.exports = {
   generateEmailResponse,
+  generateEmailBrief,
   checkApiStatus
 }; 
